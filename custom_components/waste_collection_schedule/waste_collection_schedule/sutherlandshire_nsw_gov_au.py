@@ -9,10 +9,10 @@ TITLE = "Sutherland Shire Council"
 DESCRIPTION = "Source for Sutherland Shire Council, NSW, Australia"
 URL = "https://www.sutherlandshire.nsw.gov.au"
 TEST_CASES = {
-    "195 Washington Drive, BONNET BAY": {
+    "xxx Washington Drive, BONNET BAY": {
         "suburb": "BONNET BAY",
         "street": "Washington Drive",
-        "house_number": "195",
+        "house_number": "xxx",
     },
 }
 
@@ -142,14 +142,26 @@ class Source:
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
                     "Chrome/124.0.0.0 Safari/537.36"
                 ),
-                "Referer": _PAGE_URL,
-                "X-Requested-With": "XMLHttpRequest",
+                "Accept": (
+                    "text/html,application/xhtml+xml,application/xml;"
+                    "q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
+                ),
+                "Accept-Language": "en-AU,en;q=0.9",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+                "Sec-Fetch-Dest": "document",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-User": "?1",
             }
         )
 
         # ------------------------------------------------------------------ #
         # Step 1: GET the initial page to obtain ASP.NET hidden fields        #
         # ------------------------------------------------------------------ #
+        # Visit the homepage first to get cookies, like a real browser would
+        session.get("https://www.sutherlandshire.nsw.gov.au", timeout=30)
         resp = session.get(_PAGE_URL, timeout=30)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
@@ -183,7 +195,15 @@ class Source:
             r = session.post(
                 _PAGE_URL,
                 data=payload,
-                headers={"X-MicrosoftAjax": "Delta=true"},
+                headers={
+                    "X-MicrosoftAjax": "Delta=true",
+                    "X-Requested-With": "XMLHttpRequest",
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    "Referer": _PAGE_URL,
+                    "Sec-Fetch-Dest": "empty",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Site": "same-origin",
+                },
                 timeout=30,
             )
             r.raise_for_status()
